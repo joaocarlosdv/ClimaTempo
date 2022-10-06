@@ -1,0 +1,189 @@
+﻿
+@model Auvo.App.ViewModels.ClimaTempoViewModel
+@{
+    ViewBag.Title = "Home";
+    //Layout = null;
+}
+
+@*Select2
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" integrity="sha512-nMNlpuaDPrqlEls3IX/Q56H36qvBASwb3ipuo3MxeWbsQB1881ox0cRv7UPTgBlriqoynt35KjEwgGUeUXIPnw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js" integrity="sha512-2ImtlRlf2VVmiGZsjm9bEyhjGW4dU7B6TNwh/hx/iSByxNENtj3WVE6o/9Lj4TJeVXPi4bnOIMXFIJJAeufa0A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+*@
+
+<div class="jumbotron">
+    <h1 class="display-4">Clima tempo simples</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header text-white bg-primary">
+                Cidades mais quentes hoje
+            </div>
+            <div class="card-body">
+                @if (Model.MaisQuentes != null)
+                {
+                    foreach (var obj in Model.MaisQuentes)
+                    {
+                        <div class="row">
+                            <div class="col-6">
+                                <label>@obj.Cidade.Nome - @obj.Cidade.Estado.UF</label>
+                            </div>
+                            <div class="col-3">
+                                <label>Min @Decimal.Round(obj.TemperaturaMinima)°C</label>
+                            </div>
+                            <div class="col-3">
+                                <label>Máx @Decimal.Round(obj.TemperaturaMaxima)°C</label>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header text-white bg-primary">
+                Cidades mais frias hoje
+            </div>
+            <div class="card-body">
+                @if (Model.MaisFrias != null)
+                {
+                    foreach (var obj in Model.MaisFrias)
+                    {
+                        <div class="row">
+                            <div class="col-6">
+                                <label>@obj.Cidade.Nome - @obj.Cidade.Estado.UF</label>
+                            </div>
+                            <div class="col-3">
+                                <label>Min @Decimal.Round(obj.TemperaturaMinima)°C</label>
+                            </div>
+                            <div class="col-3">
+                                <label>Máx @Decimal.Round(obj.TemperaturaMaxima)°C</label>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+<br>
+<br>
+<div class="container">
+    <div class="row">
+        <div class="col-md-4 ml-auto">
+            <div class="form-group">
+                <label>Cidade:</label>
+                <div class="controls">
+                    <select class="form-control"
+                            id="mySelect2"
+                            style="width: 100%;"
+                            tabindex="-1"
+                            aria-hidden="true"
+                            onchange="CidadeChange(this.value)">
+                        <option value="0">Selecione</option>
+                        @if (Model.Cidades != null)
+                        {
+                            foreach (var obj in Model.Cidades)
+                            {
+                                <option value="@obj.Id">@obj.Nome-@obj.Estado.UF</option>
+                            }
+                        }
+                    </select>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <br>
+    <div class="row"
+         id="rowGrupo">
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#mySelect2').select2({
+        });
+    });
+
+    function CidadeChange(id) {
+
+        $.ajax({
+            method: "POST",
+            url: '/Home/PrevisaoCidade',
+            data: { cidadeId: id }
+        })
+            .done(function (data) {
+
+                const lista = JSON.parse(data);
+
+                $("#rowGrupo div").remove();
+
+                if (lista == null) {
+                    return;
+                }
+
+                let div = '<div class="card-group">'
+                for (var i = 0; i < lista.length; i++) {
+                    div += MontaElemento(lista[i]);
+                }
+                div += '</div>'
+
+                let elemento = document.createElement('div');
+                elemento.innerHTML = div;
+                document.getElementById('rowGrupo').appendChild(elemento);
+            })
+            .fail(function (jqXHR, textStatus, msg) {
+                console.log(msg);
+            });
+    }
+
+    function MontaElemento(obj) {
+        let elemento =
+            `<div class="card">
+                <div class="card-header text-white bg-primary"> `+
+            obj.DiaSemana +
+            `</div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <label>` + RetornaIcon(obj.Clima) + ` ` + obj.Clima + `</label>
+                        </div>
+                        <div class="col-12">
+                            <label>Mínima: ` + obj.TemperaturaMinima + `°C</label>
+                        </div>
+                        <div class="col-12">
+                            <label>Máxima: ` + obj.TemperaturaMaxima + `°C</label>
+                        </div>
+                    </div>
+                </div>
+            </div>`
+
+        return elemento
+    }
+
+    function RetornaIcon(clima) {
+        if (clima.toLowerCase() == 'instavel') {
+            return '<i class="bi bi-cloud-sun"></i>'
+        }
+        else if (clima.toLowerCase() == 'tempestuoso') {
+            return '<i class="bi bi-cloud-lightning-rain"></i>'
+        }
+        else if (clima.toLowerCase() == 'nublado') {
+            return '<i class="bi bi-cloud-sun"></i>'
+        }
+        else if (clima.toLowerCase() == 'ensolarado') {
+            return '<i class="bi bi-sun"></i>'
+        }
+        else if (clima.toLowerCase() == 'chuvoso') {
+            return '<i class="bi bi-cloud-rain"></i>'
+        }
+        else {
+            return '';
+        }
+    }
+</script>
+
