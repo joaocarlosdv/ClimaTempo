@@ -7,14 +7,9 @@ namespace Auvo.App.Context
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext() : base("Data Source=DESKTOP-DFE5OOJ\\SQLEXPRESS;Initial Catalog=ClimaTempoSimples;Persist Security Info=True;User ID=sa;Password=123; Min Pool Size=5;Max Pool Size=500; Connect Timeout=10")
-        //public AppDbContext() : base("name=Conn")
-        //public AppDbContext() : base(ConfigurationManager.ConnectionStrings["Conn"].ConnectionString.ToString())
-        {
-            //string conn = ConfigurationManager.ConnectionStrings["Conn"].ConnectionString;
-        }
-
-        
+        public AppDbContext() : base(ConfigurationManager.ConnectionStrings["Conn"].ConnectionString)
+        {         
+        }        
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {            
