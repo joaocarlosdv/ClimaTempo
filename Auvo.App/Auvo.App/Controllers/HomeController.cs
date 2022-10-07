@@ -1,9 +1,7 @@
-﻿using Auvo.App.Dtos;
-using Auvo.App.Services;
+﻿using Auvo.App.Services;
 using Auvo.App.ViewModels;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Web.Mvc;
 
 namespace Auvo.App.Controllers
